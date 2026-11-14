@@ -209,9 +209,9 @@ async def test_versions_show_in_home_assistant(hass: HomeAssistant, socket_enabl
     print("update entity", upd.state, upd.attributes)
     assert upd is not None
     assert upd.attributes["installed_version"] == hub.info["version"]
-    assert upd.attributes["title"] == "Tesla Bridge"
+    assert upd.attributes["title"].startswith("Tesla Bridge")  # "Tesla Bridge (server)" from bridge 2.1
 
-    car = dr.async_get(hass).async_get_device(identifiers={("tesla_bridge", VIN)})
+    car = dr.async_get(hass).async_get_device_by_identifier(("tesla_bridge", VIN), entry.entry_id)
     assert car.sw_version == hub.info["version_display"]
     assert ir.async_get(hass).async_get_issue("tesla_bridge", "bridge_too_old") is None
 
