@@ -1,4 +1,4 @@
-"""Tesla Bridge – Home Assistant integration without MQTT.
+"""T-Pitwall – Home Assistant integration without MQTT.
 
 Talks directly to the bridge's HTTP API (the same one the dashboard on :8090 uses):
   GET  /api/entities   the entities (same as MQTT discovery – names, types and templates)
@@ -29,7 +29,7 @@ from .const import BRIDGE, CONF_TOKEN, CONF_URL, DOMAIN, MIN_BRIDGE_VERSION, PLA
 
 _LOGGER = logging.getLogger(__name__)
 
-type TeslaBridgeConfigEntry = ConfigEntry[BridgeHub]
+type TPitwallConfigEntry = ConfigEntry[BridgeHub]
 
 
 class BridgeHub:
@@ -72,7 +72,7 @@ class BridgeHub:
                 severity=ir.IssueSeverity.WARNING,
                 translation_key="bridge_too_old",
                 translation_placeholders={"installed": installed or "older than 1.1", "required": MIN_BRIDGE_VERSION},
-                learn_more_url="https://github.com/Mfoldager17/tesla-bridge/blob/main/docs/updating.md",
+                learn_more_url="https://github.com/Mfoldager17/t-pitwall/blob/main/docs/updating.md",
             )
         else:
             ir.async_delete_issue(self.hass, DOMAIN, "bridge_too_old")
@@ -148,12 +148,12 @@ class BridgeHub:
             except asyncio.CancelledError:
                 raise
             except BridgeAuthError:
-                _LOGGER.error("Tesla Bridge rejected the token – update it under the integration")
+                _LOGGER.error("T-Pitwall rejected the token – update it under the integration")
                 self._set_connected(False)
                 delay = 60
             except Exception as err:  # noqa: BLE001 – anything should lead to a retry
                 if self.connected:
-                    _LOGGER.warning("Lost connection to Tesla Bridge: %s", err)
+                    _LOGGER.warning("Lost connection to T-Pitwall: %s", err)
                 self._set_connected(False)
             try:
                 await asyncio.wait_for(self._stop.wait(), delay)
@@ -185,7 +185,7 @@ class BridgeHub:
                 identifiers={(DOMAIN, car["vin"])},
                 name=car["name"],
                 manufacturer="Tesla",
-                model="Tesla Bridge",
+                model="T-Pitwall",
                 serial_number=car["vin"],
                 sw_version=self.version,
                 configuration_url=self.client.url,
@@ -195,8 +195,8 @@ class BridgeHub:
                     result.append(factory(self, car["vin"], device, d))
         bridge = DeviceInfo(
             identifiers={(DOMAIN, "bridge")},
-            name="Tesla Bridge",
-            manufacturer="Tesla Bridge",
+            name="T-Pitwall",
+            manufacturer="T-Pitwall",
             model="Fleet API usage",
             sw_version=self.version,
             configuration_url=self.client.url,
@@ -207,7 +207,7 @@ class BridgeHub:
         return result
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: TeslaBridgeConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: TPitwallConfigEntry) -> bool:
     client = BridgeClient(async_get_clientsession(hass), entry.data[CONF_URL], entry.data.get(CONF_TOKEN))
     hub = BridgeHub(hass, client)
     try:
@@ -215,17 +215,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: TeslaBridgeConfigEntry) 
     except BridgeAuthError as err:
         raise ConfigEntryAuthFailed(str(err)) from err
     except BridgeError as err:
-        raise ConfigEntryNotReady(f"Cannot reach Tesla Bridge at {client.url}: {err}") from err
+        raise ConfigEntryNotReady(f"Cannot reach T-Pitwall at {client.url}: {err}") from err
 
     entry.runtime_data = hub
     hub.check_version()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    entry.async_create_background_task(hass, hub.async_run(), "tesla_bridge_events")
+    entry.async_create_background_task(hass, hub.async_run(), "t_pitwall_events")
     entry.async_on_unload(async_track_time_interval(hass, hub.async_refresh_usage, timedelta(minutes=5)))
     entry.async_on_unload(hub.stop)
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: TeslaBridgeConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: TPitwallConfigEntry) -> bool:
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

@@ -1,4 +1,4 @@
-"""Update entity: a new Tesla Bridge release, shown under Settings → Updates."""
+"""Update entity: a new T-Pitwall release, shown under Settings → Updates."""
 
 from __future__ import annotations
 
@@ -8,11 +8,11 @@ from homeassistant.components.update import UpdateDeviceClass, UpdateEntity, Upd
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import TeslaBridgeConfigEntry
+from . import TPitwallConfigEntry
 from .entity import BridgeEntity
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: TeslaBridgeConfigEntry, add: AddEntitiesCallback) -> None:
+async def async_setup_entry(hass: HomeAssistant, entry: TPitwallConfigEntry, add: AddEntitiesCallback) -> None:
     add(entry.runtime_data.build("update", BridgeUpdate))
 
 
@@ -36,7 +36,7 @@ class BridgeUpdate(BridgeEntity, UpdateEntity):
 
     @property
     def title(self) -> str | None:
-        return self._data().get("title") or "Tesla Bridge"
+        return self._data().get("title") or "T-Pitwall"
 
     @property
     def release_url(self) -> str | None:

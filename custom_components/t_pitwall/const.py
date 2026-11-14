@@ -1,6 +1,6 @@
-"""Constants for Tesla Bridge."""
+"""Constants for T-Pitwall."""
 
-DOMAIN = "tesla_bridge"
+DOMAIN = "t_pitwall"
 CONF_URL = "url"
 CONF_TOKEN = "token"
 

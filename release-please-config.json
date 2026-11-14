@@ -4,7 +4,7 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "package-name": "ha-tesla-bridge",
+      "package-name": "ha-t-pitwall",
       "changelog-path": "CHANGELOG.md",
       "changelog-sections": [
         { "type": "feat", "section": "Features" },
@@ -17,7 +17,7 @@
         { "type": "refactor", "section": "Refactoring", "hidden": true }
       ],
       "extra-files": [
-        { "type": "json", "path": "custom_components/tesla_bridge/manifest.json", "jsonpath": "$.version" }
+        { "type": "json", "path": "custom_components/t_pitwall/manifest.json", "jsonpath": "$.version" }
       ]
     }
   }

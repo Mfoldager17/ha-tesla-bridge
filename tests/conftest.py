@@ -1,4 +1,4 @@
-"""HA tests for custom_components/tesla_bridge (pytest-homeassistant-custom-component)."""
+"""HA tests for custom_components/t_pitwall (pytest-homeassistant-custom-component)."""
 
 from pathlib import Path
 

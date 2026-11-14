@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "T-Pitwall",
+        "description": "Adressen på T-Pitwalls dashboard, fx http://192.168.1.10:8090. Token = TPitwall__Web__Token fra .env – eller, hvis du ikke har sat et, det token T-Pitwall selv lavede (docker compose exec t-pitwall cat /data/web-token).",
+        "data": {
+          "url": "URL",
+          "token": "Token"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Nyt token",
+        "description": "T-Pitwall afviste tokenet. Skriv TPitwall__Web__Token fra .env, eller det i T-Pitwalls /data/web-token.",
+        "data": {
+          "token": "Token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan ikke nå T-Pitwall. Tjek adressen, og at dashboardet er slået til (TPitwall__Web__Enabled).",
+      "invalid_auth": "Forkert token."
+    },
+    "abort": {
+      "already_configured": "Denne T-Pitwall er allerede sat op.",
+      "reauth_successful": "Token opdateret."
+    }
+  },
+  "issues": {
+    "bridge_too_old": {
+      "title": "T-Pitwall skal opdateres",
+      "description": "T-Pitwall kører version {installed}, men integrationen kræver mindst {required}. Opdatér containeren på serveren i T-Pitwalls mappe: `docker compose pull && docker compose up -d`."
+    }
+  }
+}
