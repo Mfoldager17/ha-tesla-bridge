@@ -65,7 +65,9 @@ class BridgeHub:
         too_old = installed is None or AwesomeVersion(installed) < AwesomeVersion(MIN_BRIDGE_VERSION)
         if too_old:
             ir.async_create_issue(
-                self.hass, DOMAIN, "bridge_too_old",
+                self.hass,
+                DOMAIN,
+                "bridge_too_old",
                 is_fixable=False,
                 severity=ir.IssueSeverity.WARNING,
                 translation_key="bridge_too_old",
@@ -80,7 +82,10 @@ class BridgeHub:
             vin = car["vin"]
             fields = {k: f.get("value") for k, f in (car.get("fields") or {}).items()}
             old = self.state.get(vin, {})
-            self.state[vin] = {**({"command_status": old["command_status"]} if "command_status" in old else {}), **fields}
+            self.state[vin] = {
+                **({"command_status": old["command_status"]} if "command_status" in old else {}),
+                **fields,
+            }
             for key in set(old) | set(fields):
                 if old.get(key) != self.state[vin].get(key):
                     self._notify(vin, key)
@@ -133,7 +138,7 @@ class BridgeHub:
         delay = 1
         while not self._stop.is_set():
             try:
-                await self.async_refresh_state()   # catch up on everything that happened while we were away
+                await self.async_refresh_state()  # catch up on everything that happened while we were away
                 events = self.client.events()
                 self._set_connected(True)
                 delay = 1

@@ -1,0 +1,23 @@
+name: Release
+
+# release-please keeps a "chore(main): release x.y.z" PR up to date from the commit messages (feat:, fix: …): the
+# version in manifest.json and CHANGELOG.md. Merging that PR makes the release: tag vX.Y.Z and a GitHub Release,
+# which the Marketplace in Home Assistant offers as an update.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

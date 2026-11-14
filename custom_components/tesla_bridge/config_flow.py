@@ -19,7 +19,7 @@ class TeslaBridgeConfigFlow(ConfigFlow, domain=DOMAIN):
         client = BridgeClient(async_get_clientsession(self.hass), url, token)
         try:
             info = await client.info()
-            await client.entities()   # requires the token if the bridge has one
+            await client.entities()  # requires the token if the bridge has one
         except BridgeAuthError:
             return {"base": "invalid_auth"}, None
         except BridgeError:

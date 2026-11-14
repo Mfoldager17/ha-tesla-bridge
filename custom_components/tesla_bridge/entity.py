@@ -36,7 +36,7 @@ class BridgeEntity(Entity):
         if cfg.get("enabled_by_default") is False:
             self._attr_entity_registry_enabled_default = False
         if cfg.get("default_entity_id"):
-            self.entity_id = cfg["default_entity_id"]   # suggested id, e.g. sensor.model_y_battery_level
+            self.entity_id = cfg["default_entity_id"]  # suggested id, e.g. sensor.model_y_battery_level
 
     # ---------- fields ----------
 
@@ -66,7 +66,7 @@ class BridgeEntity(Entity):
         """Field → text, exactly like MQTT does with value_json. "None"/empty = unknown."""
         value = self.raw(field)
         if value is None:
-            return None   # unknown – like an MQTT topic without a value yet
+            return None  # unknown – like an MQTT topic without a value yet
         tpl = self._template(template) if template else None
         if tpl is None:
             return value if isinstance(value, str) else json.dumps(value)

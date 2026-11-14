@@ -10,7 +10,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 URL = os.environ.get("BRIDGE_URL", "http://127.0.0.1:8080")
-TOKEN = os.environ.get("BRIDGE_TOKEN") or None   # CI starts the bridge with a token
+TOKEN = os.environ.get("BRIDGE_TOKEN") or None  # CI starts the bridge with a token
 VIN = "5YJTESTCAR0000001"
 HEADERS = {"Authorization": f"Bearer {TOKEN}"} if TOKEN else {}
 
@@ -25,11 +25,20 @@ async def test_entities_follow_the_bridge(hass: HomeAssistant, socket_enabled) -
     states = hass.states.async_all()
     ids = {s.entity_id for s in states}
     print(len(ids), "entities")
-    for e in ["sensor.model_y_battery_level", "lock.model_y_lock", "climate.model_y_climate",
-              "cover.model_y_frunk", "device_tracker.model_y_location", "select.model_y_seat_heater_front_left",
-              "number.model_y_charge_limit", "switch.model_y_charge", "button.model_y_wake",
-              "binary_sensor.model_y_status", "sensor.tesla_bridge_cost_month",
-              "climate.model_y_cabin_overheat_protection"]:
+    for e in [
+        "sensor.model_y_battery_level",
+        "lock.model_y_lock",
+        "climate.model_y_climate",
+        "cover.model_y_frunk",
+        "device_tracker.model_y_location",
+        "select.model_y_seat_heater_front_left",
+        "number.model_y_charge_limit",
+        "switch.model_y_charge",
+        "button.model_y_wake",
+        "binary_sensor.model_y_status",
+        "sensor.tesla_bridge_cost_month",
+        "climate.model_y_cabin_overheat_protection",
+    ]:
         assert e in ids, e
 
     async with aiohttp.ClientSession(headers=HEADERS) as s, s.post(f"{URL}/api/vehicles/{VIN}/simulate") as r:
@@ -48,7 +57,7 @@ async def test_entities_follow_the_bridge(hass: HomeAssistant, socket_enabled) -
     assert hass.states.get("lock.model_y_lock").state in ("locked", "unlocked")
     assert hass.states.get("cover.model_y_frunk").state == "closed"
     loc = hass.states.get("device_tracker.model_y_location")
-    assert abs(loc.attributes["latitude"] - 56.1530) < 0.02   # the simulator moves the car on every second press
+    assert abs(loc.attributes["latitude"] - 56.1530) < 0.02  # the simulator moves the car on every second press
     clim = hass.states.get("climate.model_y_climate")
     print("climate", clim.state, clim.attributes)
     assert clim.state in ("heat_cool", "off")
@@ -70,14 +79,24 @@ async def test_entities_follow_the_bridge(hass: HomeAssistant, socket_enabled) -
     assert status.attributes.get("command") in ("Lock", "Unlock"), status
     print("command_status", hass.states.get("sensor.model_y_command_status"))
 
-    await hass.services.async_call("climate", "set_preset_mode",
-                                   {"entity_id": "climate.model_y_climate", "preset_mode": "dog"}, blocking=True)
-    await hass.services.async_call("climate", "set_hvac_mode",
-                                   {"entity_id": "climate.model_y_cabin_overheat_protection", "hvac_mode": "fan_only"}, blocking=True)
-    await hass.services.async_call("select", "select_option",
-                                   {"entity_id": "select.model_y_seat_heater_front_left", "option": "high"}, blocking=True)
-    await hass.services.async_call("number", "set_value",
-                                   {"entity_id": "number.model_y_charge_limit", "value": 80}, blocking=True)
+    await hass.services.async_call(
+        "climate", "set_preset_mode", {"entity_id": "climate.model_y_climate", "preset_mode": "dog"}, blocking=True
+    )
+    await hass.services.async_call(
+        "climate",
+        "set_hvac_mode",
+        {"entity_id": "climate.model_y_cabin_overheat_protection", "hvac_mode": "fan_only"},
+        blocking=True,
+    )
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {"entity_id": "select.model_y_seat_heater_front_left", "option": "high"},
+        blocking=True,
+    )
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": "number.model_y_charge_limit", "value": 80}, blocking=True
+    )
     for _ in range(10):
         await asyncio.sleep(0.1)
         await hass.async_block_till_done()
@@ -100,7 +119,7 @@ async def test_waiting_for_the_car_shows_on_the_entities(hass: HomeAssistant, so
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     hub = entry.runtime_data
-    for _ in range(50):   # wait for the live connection
+    for _ in range(50):  # wait for the live connection
         await asyncio.sleep(0.1)
         await hass.async_block_till_done()
         if hub.connected:
@@ -146,22 +165,23 @@ async def test_a_command_waits_for_the_car_like_teslemetry(hass: HomeAssistant, 
 
     current = hass.states.get("switch.model_y_sentry_mode").state
     service = "turn_off" if current == "on" else "turn_on"
-    call = asyncio.create_task(hass.services.async_call(
-        "switch", service, {"entity_id": "switch.model_y_sentry_mode"}, blocking=True))
+    call = asyncio.create_task(
+        hass.services.async_call("switch", service, {"entity_id": "switch.model_y_sentry_mode"}, blocking=True)
+    )
     seen = []
     started = asyncio.get_running_loop().time()
     while not call.done():
-        await asyncio.sleep(0.2)   # (not async_block_till_done – that would wait for the call itself)
+        await asyncio.sleep(0.2)  # (not async_block_till_done – that would wait for the call itself)
         st = hass.states.get("switch.model_y_sentry_mode")
         seen.append((st.state, st.attributes.get("waiting_for"), st.attributes.get("icon")))
-    await call   # raises if the bridge reported an error
+    await call  # raises if the bridge reported an error
     took = asyncio.get_running_loop().time() - started
     print("sentry while waiting", seen[:3], "…", seen[-2:])
-    assert ("car to wake up" in {w for _, w, _ in seen}), seen
-    assert ("mdi:sleep" in {i for _, _, i in seen}), seen
-    assert took > 4, took   # the call really waited for the (pretend) car to wake
+    assert "car to wake up" in {w for _, w, _ in seen}, seen
+    assert "mdi:sleep" in {i for _, _, i in seen}, seen
+    assert took > 4, took  # the call really waited for the (pretend) car to wake
 
-    for _ in range(40):   # the car confirms shortly after
+    for _ in range(40):  # the car confirms shortly after
         await asyncio.sleep(0.1)
         await hass.async_block_till_done()
         if hass.states.get("switch.model_y_sentry_mode").attributes.get("pending") is False:
@@ -231,4 +251,4 @@ async def test_a_wrong_token_asks_for_a_new_one(hass: HomeAssistant, socket_enab
     assert not await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.SETUP_ERROR
-    assert any(f["handler"] == "tesla_bridge" for f in hass.config_entries.flow.async_progress())   # reauth
+    assert any(f["handler"] == "tesla_bridge" for f in hass.config_entries.flow.async_progress())  # reauth

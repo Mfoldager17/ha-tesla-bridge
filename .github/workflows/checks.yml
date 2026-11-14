@@ -1,0 +1,74 @@
+name: Checks
+
+# Every pull request and push to main, and once a week so a change in the bridge that breaks the integration is
+# noticed even when nothing changes here.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check .
+
+  # Home Assistant's own check of manifest.json, strings and translations
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: home-assistant/actions/hassfest@master
+
+  # The Marketplace (HACS) check: hacs.json, the manifest and the repository layout
+  marketplace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hacs/action@main
+        with:
+          category: integration
+          ignore: brands
+
+  # The integration in a real Home Assistant (pytest-homeassistant-custom-component) against a real bridge from
+  # Mfoldager17/tesla-bridge: built from source, with the pretend car and a token.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Mfoldager17/tesla-bridge
+          path: bridge
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements_test.txt
+      - name: Start the bridge (Development, embedded broker, simulator, with a token)
+        working-directory: bridge/src/TeslaBridge
+        env:
+          Bridge__Web__Token: ci-test-token-0123456789abcdef
+          Bridge__Web__AllowAnonymous: "false"
+        run: |
+          dotnet build
+          ASPNETCORE_ENVIRONMENT=Development nohup dotnet run --no-build > /tmp/bridge.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8080/api/info && break; sleep 1; done
+      - run: python -m pytest tests -v
+        env:
+          BRIDGE_TOKEN: ci-test-token-0123456789abcdef
+      - if: failure()
+        run: cat /tmp/bridge.log

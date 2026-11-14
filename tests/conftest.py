@@ -6,7 +6,7 @@ import pytest
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
-REPO_COMPONENTS = str(Path(__file__).resolve().parents[2] / "custom_components")
+REPO_COMPONENTS = str(Path(__file__).resolve().parents[1] / "custom_components")
 
 
 @pytest.fixture(autouse=True)
