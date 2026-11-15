@@ -38,14 +38,14 @@ jobs:
           ignore: brands
 
   # The integration in a real Home Assistant (pytest-homeassistant-custom-component) against a real bridge from
-  # Mfoldager17/tesla-bridge: built from source, with the pretend car and a token.
+  # Mfoldager17/t-pitwall: built from source, with the pretend car and a token.
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
         with:
-          repository: Mfoldager17/tesla-bridge
+          repository: Mfoldager17/t-pitwall
           path: bridge
       - uses: actions/setup-dotnet@v4
         with:
@@ -55,10 +55,10 @@ jobs:
           python-version: "3.14"
       - run: pip install -r requirements_test.txt
       - name: Start the bridge (Development, embedded broker, simulator, with a token)
-        working-directory: bridge/src/TeslaBridge
+        working-directory: bridge/src/TPitwall
         env:
-          Bridge__Web__Token: ci-test-token-0123456789abcdef
-          Bridge__Web__AllowAnonymous: "false"
+          TPitwall__Web__Token: ci-test-token-0123456789abcdef
+          TPitwall__Web__AllowAnonymous: "false"
         run: |
           dotnet build
           ASPNETCORE_ENVIRONMENT=Development nohup dotnet run --no-build > /tmp/bridge.log 2>&1 &

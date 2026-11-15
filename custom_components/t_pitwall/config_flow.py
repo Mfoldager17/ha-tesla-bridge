@@ -12,7 +12,7 @@ from .api import BridgeAuthError, BridgeClient, BridgeError
 from .const import CONF_TOKEN, CONF_URL, DOMAIN
 
 
-class TeslaBridgeConfigFlow(ConfigFlow, domain=DOMAIN):
+class TPitwallConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def _validate(self, url: str, token: str | None) -> tuple[dict[str, str], dict[str, Any] | None]:
@@ -38,7 +38,7 @@ class TeslaBridgeConfigFlow(ConfigFlow, domain=DOMAIN):
                 vins = sorted(v["vin"] for v in info.get("vehicles", []))
                 await self.async_set_unique_id(vins[0] if vins else url)
                 self._abort_if_unique_id_configured(updates={CONF_URL: url, CONF_TOKEN: token})
-                names = ", ".join(v["name"] for v in info.get("vehicles", [])) or "Tesla Bridge"
+                names = ", ".join(v["name"] for v in info.get("vehicles", [])) or "T-Pitwall"
                 return self.async_create_entry(title=names, data={CONF_URL: url, CONF_TOKEN: token})
 
         schema = vol.Schema(

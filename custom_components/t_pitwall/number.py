@@ -8,12 +8,12 @@ from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import TeslaBridgeConfigEntry
+from . import TPitwallConfigEntry
 from .entity import BridgeEntity, to_float
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: TeslaBridgeConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: TPitwallConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     async_add_entities(entry.runtime_data.build("number", BridgeNumber))
 

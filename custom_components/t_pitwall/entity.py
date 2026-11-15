@@ -87,7 +87,7 @@ class BridgeEntity(Entity):
         try:
             await self.hub.client.command(self.vin, target[4:], str(payload))
         except BridgeError as err:
-            raise HomeAssistantError(f"Tesla Bridge: {err}") from err
+            raise HomeAssistantError(f"T-Pitwall: {err}") from err
 
     # ---------- waiting for the car ----------
 

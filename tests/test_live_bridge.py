@@ -17,7 +17,7 @@ HEADERS = {"Authorization": f"Bearer {TOKEN}"} if TOKEN else {}
 
 @pytest.mark.allow_hosts(["127.0.0.1"])
 async def test_entities_follow_the_bridge(hass: HomeAssistant, socket_enabled) -> None:
-    entry = MockConfigEntry(domain="tesla_bridge", data={"url": URL, "token": TOKEN}, unique_id=VIN)
+    entry = MockConfigEntry(domain="t_pitwall", data={"url": URL, "token": TOKEN}, unique_id=VIN)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -36,7 +36,7 @@ async def test_entities_follow_the_bridge(hass: HomeAssistant, socket_enabled) -
         "switch.model_y_charge",
         "button.model_y_wake",
         "binary_sensor.model_y_status",
-        "sensor.tesla_bridge_cost_month",
+        "sensor.t_pitwall_cost_month",
         "climate.model_y_cabin_overheat_protection",
     ]:
         assert e in ids, e
@@ -62,7 +62,7 @@ async def test_entities_follow_the_bridge(hass: HomeAssistant, socket_enabled) -
     print("climate", clim.state, clim.attributes)
     assert clim.state in ("heat_cool", "off")
     assert clim.attributes["current_temperature"] is not None
-    print("cost", hass.states.get("sensor.tesla_bridge_cost_month"))
+    print("cost", hass.states.get("sensor.t_pitwall_cost_month"))
     assert hass.states.get("sensor.model_y_last_seen").state not in ("unknown", "unavailable")
 
     # Command: unlock → the bridge sets an optimistic state → UNLOCKING/unlocked via SSE
@@ -114,7 +114,7 @@ async def test_entities_follow_the_bridge(hass: HomeAssistant, socket_enabled) -
 
 @pytest.mark.allow_hosts(["127.0.0.1"])
 async def test_waiting_for_the_car_shows_on_the_entities(hass: HomeAssistant, socket_enabled) -> None:
-    entry = MockConfigEntry(domain="tesla_bridge", data={"url": URL, "token": TOKEN}, unique_id=VIN)
+    entry = MockConfigEntry(domain="t_pitwall", data={"url": URL, "token": TOKEN}, unique_id=VIN)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -151,7 +151,7 @@ async def test_waiting_for_the_car_shows_on_the_entities(hass: HomeAssistant, so
 @pytest.mark.allow_hosts(["127.0.0.1"])
 async def test_a_command_waits_for_the_car_like_teslemetry(hass: HomeAssistant, socket_enabled) -> None:
     """The action runs until the car has woken and done it, and the entity says what it waits for meanwhile."""
-    entry = MockConfigEntry(domain="tesla_bridge", data={"url": URL, "token": TOKEN}, unique_id=VIN)
+    entry = MockConfigEntry(domain="t_pitwall", data={"url": URL, "token": TOKEN}, unique_id=VIN)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -194,7 +194,7 @@ async def test_a_command_waits_for_the_car_like_teslemetry(hass: HomeAssistant, 
 async def test_versions_show_in_home_assistant(hass: HomeAssistant, socket_enabled) -> None:
     from homeassistant.helpers import device_registry as dr, issue_registry as ir
 
-    entry = MockConfigEntry(domain="tesla_bridge", data={"url": URL, "token": TOKEN}, unique_id=VIN)
+    entry = MockConfigEntry(domain="t_pitwall", data={"url": URL, "token": TOKEN}, unique_id=VIN)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -205,26 +205,26 @@ async def test_versions_show_in_home_assistant(hass: HomeAssistant, socket_enabl
             break
     await hass.async_block_till_done()
 
-    upd = hass.states.get("update.tesla_bridge")
+    upd = hass.states.get("update.t_pitwall")
     print("update entity", upd.state, upd.attributes)
     assert upd is not None
     assert upd.attributes["installed_version"] == hub.info["version"]
-    assert upd.attributes["title"].startswith("Tesla Bridge")  # "Tesla Bridge (server)" from bridge 2.1
+    assert upd.attributes["title"].startswith("T-Pitwall")  # "T-Pitwall (server)"
 
-    car = dr.async_get(hass).async_get_device_by_identifier(("tesla_bridge", VIN), entry.entry_id)
+    car = dr.async_get(hass).async_get_device_by_identifier(("t_pitwall", VIN), entry.entry_id)
     assert car.sw_version == hub.info["version_display"]
-    assert ir.async_get(hass).async_get_issue("tesla_bridge", "bridge_too_old") is None
+    assert ir.async_get(hass).async_get_issue("t_pitwall", "bridge_too_old") is None
 
     # A bridge too old to report its version gets a repair
     hub.info = {}
     hub.check_version()
-    assert ir.async_get(hass).async_get_issue("tesla_bridge", "bridge_too_old") is not None
+    assert ir.async_get(hass).async_get_issue("t_pitwall", "bridge_too_old") is not None
     await hass.config_entries.async_unload(entry.entry_id)
 
 
 @pytest.mark.allow_hosts(["127.0.0.1"])
 async def test_config_flow(hass: HomeAssistant, socket_enabled) -> None:
-    result = await hass.config_entries.flow.async_init("tesla_bridge", context={"source": "user"})
+    result = await hass.config_entries.flow.async_init("t_pitwall", context={"source": "user"})
     assert result["type"] == "form"
     bad = await hass.config_entries.flow.async_configure(result["flow_id"], {"url": "127.0.0.1:1"})
     assert bad["errors"] == {"base": "cannot_connect"}
@@ -246,9 +246,9 @@ async def test_config_flow(hass: HomeAssistant, socket_enabled) -> None:
 async def test_a_wrong_token_asks_for_a_new_one(hass: HomeAssistant, socket_enabled) -> None:
     if not TOKEN:
         pytest.skip("the bridge runs without a token")
-    entry = MockConfigEntry(domain="tesla_bridge", data={"url": URL, "token": "wrong"}, unique_id=VIN)
+    entry = MockConfigEntry(domain="t_pitwall", data={"url": URL, "token": "wrong"}, unique_id=VIN)
     entry.add_to_hass(hass)
     assert not await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.SETUP_ERROR
-    assert any(f["handler"] == "tesla_bridge" for f in hass.config_entries.flow.async_progress())  # reauth
+    assert any(f["handler"] == "t_pitwall" for f in hass.config_entries.flow.async_progress())  # reauth
